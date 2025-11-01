@@ -40,20 +40,29 @@ function Content() {
     setResult(result);
   };
 
-  useEffect(() => {
-    // On component mount, check for MangoHud config
-    (async () => {
-      const exists = await mangohudConfigExists();
-      setMangohudConfPresent(exists);
-      if (exists) {
-        const contents = await mangohudConfigContents();
-        setMangohudConfContents(contents);
-      }
-    })();
-  }, []);
 
   const [mangohudConfPresent, setMangohudConfPresent] = useState<boolean>(false);
   const [mangohudConfContents, setMangohudConfContents] = useState<string>("");
+
+  async function updateMangoHudConfigState() {
+    const exists = await mangohudConfigExists();
+    setMangohudConfPresent(exists);
+    if (exists) {
+      const contents = await mangohudConfigContents();
+      setMangohudConfContents(contents);
+    } else {
+      setMangohudConfContents("");
+    }
+  }
+
+  const onMangoConfigRefreshStateClick = async () => {
+    await updateMangoHudConfigState();
+  };
+
+  useEffect(() => {
+    // On component mount, check for MangoHud config
+    updateMangoHudConfigState();
+  }, []);
 
   return (
     <div>
@@ -62,6 +71,12 @@ function Content() {
           <div>
             {mangohudConfPresent ? '✓ MangoHud config found.' : '✗ MangoHud config not found.'}
           </div>
+          <ButtonItem
+            layout="below"
+            onClick={onMangoConfigRefreshStateClick}
+          >
+            {"Refresh MangoHud config state"}
+          </ButtonItem>
           {mangohudConfPresent &&
             <pre style={{ maxHeight: '200px', overflowY: 'auto', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '5px' }}>
               {mangohudConfContents}

@@ -8,6 +8,19 @@ import asyncio
 from pathlib import Path
 
 MANGOHUD_CONFIG_PATH = Path.home() / ".config" / "MangoHud" / "presets.conf"
+MANGOHUD_CONFIG_PRESET_TEMPLATE = """
+[preset {f_preset_number}]
+alpha={f_alpha}
+background_alpha={f_background_alpha}
+time
+time_no_label
+time_format={f_time_format}
+legacy_layout=false
+horizontal
+offset_y={f_offset_y}
+offset_x={f_offset_x}
+position={f_position}
+"""
 
 class Plugin:
     async def mangohud_config_exists(self) -> bool:
@@ -21,6 +34,31 @@ class Plugin:
         if not MANGOHUD_CONFIG_PATH.exists():
             return ""
         return MANGOHUD_CONFIG_PATH.read_text()
+
+    async def struct_mangohud_preset(self,
+        preset_number: int = 3,
+        alpha: float = 1.0,
+        background_alpha: float = 0.0,
+        time_format: str = "%H:%M",
+        offset_y: int = -5,
+        offset_x: int = 1212,
+        position: str = "top-right"
+    ) -> str:
+        return MANGOHUD_CONFIG_PRESET_TEMPLATE.format(
+            f_preset_number=preset_number,
+            f_alpha=alpha,
+            f_background_alpha=background_alpha,
+            f_time_format=time_format,
+            f_offset_y=offset_y,
+            f_offset_x=offset_x,
+            f_position=position
+        )
+
+    # TODO: First version - overwrite the whole file
+    #       When disabling delete the file
+    #       Add sliders, value inputs
+    #
+    # TODO: Second version - try to modify existing mangohud_config in place
 
     # ==========================================================================
 
