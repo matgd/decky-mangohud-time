@@ -1,11 +1,11 @@
 {
-  "name": "Example Plugin",
-  "author": "John Doe",
-  "flags": ["debug", "_root"],
+  "name": "MangoHud Preset Clock",
+  "author": "matgd",
+  "flags": [],
   "api_version": 1,
   "publish": {
-    "tags": ["template", "root"],
-    "description": "Decky example plugin.",
-    "image": "https://opengraph.githubassets.com/1/SteamDeckHomebrew/PluginLoader"
+    "tags": ["mangohud", "time", "overlay", "clock"],
+    "description": "Make one of the MangoHud presets show clock.",
+    "image": "https://opengraph.githubassets.com/1/matgd/decky-mangohud-time"
   }
 }
