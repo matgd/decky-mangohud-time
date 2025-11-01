@@ -5,8 +5,25 @@ import os
 # and add the `decky-loader/plugin/imports` path to `python.analysis.extraPaths` in `.vscode/settings.json`
 import decky
 import asyncio
+from pathlib import Path
+
+MANGOHUD_CONFIG_PATH = Path.home() / ".config" / "MangoHud" / "presets.conf"
 
 class Plugin:
+    async def mangohud_config_exists(self) -> bool:
+        return MANGOHUD_CONFIG_PATH.exists()
+
+    async def create_empty_mangohud_config(self):
+        MANGOHUD_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        MANGOHUD_CONFIG_PATH.touch()
+
+    async def mangohud_config_contents(self) -> str:
+        if not MANGOHUD_CONFIG_PATH.exists():
+            return ""
+        return MANGOHUD_CONFIG_PATH.read_text()
+
+    # ==========================================================================
+
     # A normal method. It can be called from the TypeScript side using @decky/api.
     async def add(self, left: int, right: int) -> int:
         return left + right

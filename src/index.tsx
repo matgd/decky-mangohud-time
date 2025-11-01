@@ -13,8 +13,8 @@ import {
   toaster,
   // routerHook
 } from "@decky/api"
-import { useState } from "react";
-import { FaShip } from "react-icons/fa";
+import { useEffect, useState } from "react";
+import { FaClock } from "react-icons/fa";
 
 // import logo from "../assets/logo.png";
 
@@ -28,6 +28,10 @@ const add = callable<[first: number, second: number], number>("add");
 // It starts a (python) timer which eventually emits the event 'timer_event'
 const startTimer = callable<[], void>("start_timer");
 
+
+const mangohudConfigExists = callable<[], boolean>("mangohud_config_exists");
+const mangohudConfigContents = callable<[], string>("mangohud_config_contents");
+
 function Content() {
   const [result, setResult] = useState<number | undefined>();
 
@@ -36,43 +40,73 @@ function Content() {
     setResult(result);
   };
 
+  useEffect(() => {
+    // On component mount, check for MangoHud config
+    (async () => {
+      const exists = await mangohudConfigExists();
+      setMangohudConfPresent(exists);
+      if (exists) {
+        const contents = await mangohudConfigContents();
+        setMangohudConfContents(contents);
+      }
+    })();
+  }, []);
+
+  const [mangohudConfPresent, setMangohudConfPresent] = useState<boolean>(false);
+  const [mangohudConfContents, setMangohudConfContents] = useState<string>("");
+
   return (
-    <PanelSection title="Panel Section">
-      <PanelSectionRow>
-        <ButtonItem
-          layout="below"
-          onClick={onClick}
-        >
-          {result ?? "Add two numbers via Python"}
-        </ButtonItem>
-      </PanelSectionRow>
-      <PanelSectionRow>
-        <ButtonItem
-          layout="below"
-          onClick={() => startTimer()}
-        >
-          {"Start Python timer"}
-        </ButtonItem>
-      </PanelSectionRow>
+    <div>
+      <PanelSection title="MangoHud config">
+        <PanelSectionRow>
+          <div>
+            {mangohudConfPresent ? '✓ MangoHud config found.' : '✗ MangoHud config not found.'}
+          </div>
+          {mangohudConfPresent &&
+            <pre style={{ maxHeight: '200px', overflowY: 'auto', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '5px' }}>
+              {mangohudConfContents}
+            </pre>
+          }
+        </PanelSectionRow>
+      </PanelSection>
 
-      {/* <PanelSectionRow>
-        <div style={{ display: "flex", justifyContent: "center" }}>
-          <img src={logo} />
-        </div>
-      </PanelSectionRow> */}
+      <PanelSection title="Panel Section">
+        <PanelSectionRow>
+          <ButtonItem
+            layout="below"
+            onClick={onClick}
+          >
+            {result ?? "Add two numbers via Python"}
+          </ButtonItem>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ButtonItem
+            layout="below"
+            onClick={() => startTimer()}
+          >
+            {"Start Python timer"}
+          </ButtonItem>
+        </PanelSectionRow>
 
-      {/*<PanelSectionRow>
-        <ButtonItem
-          layout="below"
-          onClick={() => {
-            Navigation.Navigate("/decky-plugin-test");
-            Navigation.CloseSideMenus();
-          }}
-        >
-          Router
-        </ButtonItem>
-      </PanelSectionRow>*/}
-    </PanelSection>
+        {/* <PanelSectionRow>
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <img src={logo} />
+          </div>
+        </PanelSectionRow> */}
+
+        {/*<PanelSectionRow>
+          <ButtonItem
+            layout="below"
+            onClick={() => {
+              Navigation.Navigate("/decky-plugin-test");
+              Navigation.CloseSideMenus();
+            }}
+          >
+            Router
+          </ButtonItem>
+        </PanelSectionRow>*/}
+      </PanelSection>
+    </div>
   );
 };
 
@@ -98,13 +132,13 @@ export default definePlugin(() => {
 
   return {
     // The name shown in various decky menus
-    name: "Test Plugin",
+    name: "MangoHud Preset Clock",
     // The element displayed at the top of your plugin's menu
-    titleView: <div className={staticClasses.Title}>Decky Example Plugin</div>,
+    titleView: <div className={staticClasses.Title}>MangoHud Preset Clock</div>,
     // The content of your plugin's menu
     content: <Content />,
     // The icon displayed in the plugin list
-    icon: <FaShip />,
+    icon: <FaClock />,
     // The function triggered when your plugin unloads
     onDismount() {
       console.log("Unloading")
