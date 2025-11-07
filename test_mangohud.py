@@ -38,7 +38,7 @@ class TestMangoHudConfigEditorDefault(unittest.TestCase):
             config.read_file(f)
 
         # Check that the default preset section exists
-        preset_section = f"[preset {MANGOHUD_DEFAULT_PRESET_NUMBER}]"
+        preset_section = f"preset {MANGOHUD_DEFAULT_PRESET_NUMBER}"
         self.assertTrue(config.has_section(preset_section))
 
         # Verify all default key-value pairs

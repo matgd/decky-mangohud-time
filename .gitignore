@@ -55,3 +55,6 @@ out/*
 cli/
 cli/*
 cli/decky
+
+.test_presets.conf
+.test_presets.conf.bak

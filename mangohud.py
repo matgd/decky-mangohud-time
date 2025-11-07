@@ -129,12 +129,32 @@ class MangoHudConfigEditor:
         self._create_presets_conf_if_doesnt_exist()
         self._read_with_config_parser()
 
-        preset_header = f"[preset {preset}]"
+        preset_header = f"preset {preset}"
         self._add_section_if_not_exists(preset_header)
 
-        self._delete_keys_and_flags(preset_header, remove, remove_all)
         self._set_key_values(preset_header, kv)
         self._set_flags(preset_header, flags)
+        self._delete_keys_and_flags(preset_header, remove, remove_all)
+
+        self._write_presets_conf()
+
+    def delete_preset(
+        self,
+        preset: int = 3,
+    ):
+        """Delete a MangoHud preset from the config file.
+
+        Args:
+            preset: Preset number to delete.
+        """
+        self._create_presets_conf_dirs_parents()
+        self._backup_existing_mangohud_config()
+        self._create_presets_conf_if_doesnt_exist()
+        self._read_with_config_parser()
+
+        preset_header = f"preset {preset}"
+        if self.config_parser.has_section(preset_header):
+            self.config_parser.remove_section(preset_header)
 
         self._write_presets_conf()
 

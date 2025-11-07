@@ -145,6 +145,14 @@
             "detail": "Run the Python test suite",
             "command": "python3 -m unittest discover .",
             "problemMatcher": []
+        },
+        {
+            "label": "Run _mangohud_cli.py to test functionality",
+            "type": "shell",
+            "group": "test",
+            "detail": "Run the _mangohud_cli.py script to test its functionality",
+            "command": "./_mangohud_cli.py",
+            "problemMatcher": []
         }
     ]
 }
