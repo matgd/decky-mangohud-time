@@ -60,7 +60,7 @@
             //     "command": "call ${workspaceFolder}\\.vscode\\build.bat",
             // },
             "problemMatcher": []
-        }, 
+        },
         //"All-in-one" build task
         {
             "label": "build",
@@ -138,5 +138,13 @@
             "command": "ssh ${config:deckuser}@${config:deckip} -p ${config:deckport} ${config:deckkey} 'echo '${config:deckpass}' | sudo -S chmod -R ug+rw ${config:deckdir}/homebrew/plugins/'",
             "problemMatcher": []
         },
+        {
+            "label": "Run Python tests",
+            "type": "shell",
+            "group": "test",
+            "detail": "Run the Python test suite",
+            "command": "python3 -m unittest discover .",
+            "problemMatcher": []
+        }
     ]
 }
