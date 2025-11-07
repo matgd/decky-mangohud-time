@@ -129,8 +129,8 @@ class TestMangoHudConfigEditorDefault(unittest.TestCase):
         for flag in MANGOHUD_DEFAULT_PRESET_FLAGS:
             self.assertTrue(config.has_option(preset_section, flag))
 
-    def test_upsert_mangohud_preset_remove_all(self):
-        """Test upsert with remove_all=True to clear all existing options."""
+    def test_upsert_mangohud_clear_preset_first(self):
+        """Test upsert with clear_preset_first=True to clear all existing options."""
         # First create a preset with defaults
         self.editor.upsert_mangohud_preset()
 
@@ -140,15 +140,16 @@ class TestMangoHudConfigEditorDefault(unittest.TestCase):
         self.editor.upsert_mangohud_preset(
             kv=custom_kv,
             flags=custom_flags,
-            remove_all=True
+            clear_preset_first=True
         )
 
         config = self._read_config()
         preset_section = f"preset {MANGOHUD_DEFAULT_PRESET_NUMBER}"
 
-        # Verify that NOTHING exists
-        self.assertFalse(config.has_option(preset_section, "new_key"))
-        self.assertFalse(config.has_option(preset_section, "new_flag"))
+        # Verify that only new things are present
+        self.assertTrue(config.has_option(preset_section, "new_key"))
+        self.assertEqual(config.get(preset_section, "new_key"), "new_value")
+        self.assertTrue(config.has_option(preset_section, "new_flag"))
 
         # Verify old defaults don't exist
         self.assertFalse(config.has_option(preset_section, "alpha"))

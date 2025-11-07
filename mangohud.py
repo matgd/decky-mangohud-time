@@ -74,11 +74,7 @@ class MangoHudConfigEditor:
         self,
         section: str,
         keys_and_flags: list[str],
-        remove_all: bool = False,
     ) -> None:
-        if remove_all:
-            keys_and_flags = self.config_parser.options(section)
-
         for k in keys_and_flags:
             if self.config_parser.has_option(section, k):
                 self.config_parser.remove_option(section, k)
@@ -90,6 +86,13 @@ class MangoHudConfigEditor:
     ) -> None:
         for k, v in kv.items():
             self.config_parser.set(section, k, str(v))
+
+    def _clear_preset(
+        self,
+        section: str
+    ) -> None:
+        for k in list(self.config_parser[section].keys()):
+            self.config_parser.remove_option(section, k)
 
     def _set_flags(
         self,
@@ -109,7 +112,7 @@ class MangoHudConfigEditor:
         kv: dict[str, str | int | float] | None = None,
         flags: list[str] | None = None,
         remove: list[str] | None = None,
-        remove_all: bool = False,
+        clear_preset_first: bool = False,
     ):
         """Change or add a MangoHud preset in the config file.
 
@@ -119,6 +122,7 @@ class MangoHudConfigEditor:
             kv: Key-value pairs to set in the preset.
             flags: List of flags (keys without values) to set in the preset.
             remove: List of keys/flags to remove from the preset.
+            clear_preset_first: If True, clears all existing keys/flags in the preset before applying changes.
         """
         kv = kv or MANGOHUD_DEFAILT_PRESET_KEY_VALUES
         flags = flags or MANGOHUD_DEFAULT_PRESET_FLAGS
@@ -132,9 +136,12 @@ class MangoHudConfigEditor:
         preset_header = f"preset {preset}"
         self._add_section_if_not_exists(preset_header)
 
+        if clear_preset_first:
+            self._clear_preset(preset_header)
+
         self._set_key_values(preset_header, kv)
         self._set_flags(preset_header, flags)
-        self._delete_keys_and_flags(preset_header, remove, remove_all)
+        self._delete_keys_and_flags(preset_header, remove)
 
         self._write_presets_conf()
 

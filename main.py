@@ -7,11 +7,7 @@ import decky
 import asyncio
 
 class Plugin:
-    # TODO: First version - overwrite the whole file
-    #       When disabling delete the file
-    #       Add sliders, value inputs
-    #
-    # TODO: Second version - try to modify existing mangohud_config in place
+    # TODO: Call stuff here
 
     # ==========================================================================
 
