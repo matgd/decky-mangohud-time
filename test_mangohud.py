@@ -3,7 +3,12 @@ import tempfile
 from pathlib import Path
 from configparser import ConfigParser
 
-from mangohud import (
+# Mock the decky plugin, I don't need to test it
+import sys
+from unittest import mock
+sys.modules['decky'] = mock.MagicMock()
+
+from main import (
     MangoHudConfigEditor,
     MANGOHUD_DEFAULT_PRESET_NUMBER,
     MANGOHUD_DEFAILT_PRESET_KEY_VALUES,
