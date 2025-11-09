@@ -135,9 +135,12 @@ class MangoHudConfigEditor:
             remove: List of keys/flags to remove from the preset.
             clear_preset_first: If True, clears all existing keys/flags in the preset before applying changes.
         """
-        kv = kv or MANGOHUD_DEFAILT_PRESET_KEY_VALUES
-        flags = flags or MANGOHUD_DEFAULT_PRESET_FLAGS
-        remove = remove or []
+        if kv is None:
+            kv = MANGOHUD_DEFAILT_PRESET_KEY_VALUES
+        if flags is None:
+            flags = MANGOHUD_DEFAULT_PRESET_FLAGS
+        if remove is None:
+            remove = []
 
         self._create_presets_conf_dirs_parents()
         self._backup_existing_mangohud_config()
@@ -199,18 +202,49 @@ class MangoHudConfigEditor:
 
         return preset_data
 
-    def get_current_preset_data_as_string(
+    def preset_data_is_empty(
         self,
         preset: int = 3,
-    ) -> str:
-        """Get the current preset data as a formatted string.
+    ) -> bool:
+        """Check if a MangoHud preset is empty (has no keys or flags).
 
         Args:
-            preset: Preset number to retrieve.
+            preset: Preset number to check.
         """
-        preset_data = self.get_current_preset_data(preset=preset)
-        lines = [f"{k}={v}" if v is not None else f"{k}" for k, v in preset_data.items()]
-        return ";".join(lines)
+        self._create_presets_conf_dirs_parents()
+        self._create_presets_conf_if_doesnt_exist()
+        self._read_with_config_parser()
+
+        preset_header = f"preset {preset}"
+        if not self.config_parser.has_section(preset_header):
+            return True
+
+        return len(self.config_parser[preset_header].keys()) == 0
+
+
+    def preset_data_is_only_plugin_data(
+        self,
+        preset: int = 3,
+    ) -> bool:
+        """Check if a MangoHud preset contains only the plugin's default keys and flags.
+
+        Args:
+            preset: Preset number to check.
+        """
+        self._create_presets_conf_dirs_parents()
+        self._create_presets_conf_if_doesnt_exist()
+        self._read_with_config_parser()
+
+        preset_header = f"preset {preset}"
+        if not self.config_parser.has_section(preset_header):
+            return False
+
+        inspected_keys_set = set(self.config_parser[preset_header].keys())
+
+        plugin_keys_set = set(MANGOHUD_DEFAILT_PRESET_KEY_VALUES.keys())
+        plugin_flags_set = set(MANGOHUD_DEFAULT_PRESET_FLAGS)
+
+        return inspected_keys_set == plugin_keys_set.union(plugin_flags_set)
 
 mangohud_editor = MangoHudConfigEditor()
 
@@ -245,6 +279,12 @@ class Plugin:
 
     async def mangohud_get_current_preset_data(self, preset_number: int) -> dict[str, str | None]:
         return mangohud_editor.get_current_preset_data(preset=preset_number)
+
+    async def mangohud_preset_is_empty(self, preset_number: int) -> bool:
+        return mangohud_editor.preset_data_is_empty(preset=preset_number)
+
+    async def mangohud_preset_non_plugin_keys_inside(self, preset_number: int) -> bool:
+        return not mangohud_editor.preset_data_is_only_plugin_data(preset=preset_number)
 
     # ==========================================================================
     # Asyncio-compatible long-running code, executed in a task when the plugin is loaded

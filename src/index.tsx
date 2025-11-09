@@ -34,14 +34,17 @@ const mangohudUpsertTimePreset = callable<[
   position: string,
 ], void>("mangohud_upsert_time_preset");
 const mangohudGetCurrentPresetData = callable<[preset_number: number], any>("mangohud_get_current_preset_data");
+const mangohudPresetIsEmpty = callable<[preset_number: number], boolean>("mangohud_preset_is_empty");
+const mangohudPresetNonPluginKeysInside = callable<[preset_number: number], boolean>("mangohud_preset_non_plugin_keys_inside");
 
 
 function Content() {
-  const [chosenPresetLoaded, setChosenPresetLoaded] = useState<boolean>(false);
+  const [showPresetKeys, setShowPresetKeys] = useState<boolean>(false);
+  const [presetEmpty, setPresetEmpty] = useState<boolean>(true);
+  const [presetNonPluginKeysInside, setPresetNonPluginKeysInside] = useState<boolean>(false);
 
   const [errorMsg, setErrorMsg] = useState<string>("");
-
-  const [currentPresetData, setCurrentPresetData] = useState<any>({});
+  const [presetMsg, setPresetMsg] = useState<string>("");
 
   const [preset, setPreset] = useState<number>(3);
   const [alpha, setAlpha] = useState<number>(1.0);
@@ -52,26 +55,41 @@ function Content() {
   const [position, setPosition] = useState<string>("top-right");
 
 
-  const initialLoad = async () => {
+  const presetLoad = async () => {
     try {
       const curr = await mangohudGetCurrentPresetData(3);
-      setCurrentPresetData(curr);
+      const isEmpty = await mangohudPresetIsEmpty(preset);
+      const nonPluginDataDetected = await mangohudPresetNonPluginKeysInside(preset);
+
+      setPresetEmpty(isEmpty);
+      setPresetNonPluginKeysInside(nonPluginDataDetected);
+
+      if (isEmpty) {
+        setPresetMsg(`Preset ${preset} is empty.`);
+        setShowPresetKeys(false);
+        return
+      } else if (nonPluginDataDetected) {
+        // TODO: Test this
+        setPresetMsg(`Preset ${preset} contains non-plugin keys. Changes may overwrite existing settings.`);
+        setShowPresetKeys(false);
+        return
+      }
 
       if (curr.alpha) setAlpha(parseFloat(curr.alpha));
       if (curr.background_alpha) setBackgroundAlpha(parseFloat(curr.background_alpha));
       if (curr.offset_x) setOffsetX(parseInt(curr.offset_x));
       if (curr.offset_y) setOffsetY(parseInt(curr.offset_y));
       if (curr.time_format) setTimeFormat(curr.time_format);
-      setChosenPresetLoaded(true);
+      setShowPresetKeys(true);
     } catch (e) {
       setErrorMsg(`Failed to load current preset data: ${e}`);
     }
   }
 
   useEffect(() => {
-    setChosenPresetLoaded(false);
-    initialLoad().catch(e => {
-      setErrorMsg(`Error during initial load: ${e}`);
+    setShowPresetKeys(false);
+    presetLoad().catch(e => {
+      setErrorMsg(`Error during preset load: ${e}`);
     });
   }, [preset])
 
@@ -89,7 +107,13 @@ function Content() {
         <SliderField label="Affected preset" min={1} max={6} step={1} value={preset} onChange={(v) => setPreset(v)} showValue={true} description="Change preset to overwrite" />
       </PanelSectionRow>
 
-      {chosenPresetLoaded && (
+      {(presetEmpty || presetNonPluginKeysInside) && (
+        <PanelSectionRow>
+          <div>{presetMsg}</div>
+        </PanelSectionRow>
+      )}
+
+      {showPresetKeys && (
         <>
           <PanelSectionRow>
             <SliderField label="Text alpha" min={0} max={1} step={0.1} value={alpha} onChange={(v) => setAlpha(v)} showValue={true} description="Change text opacity" />

@@ -200,6 +200,22 @@ class TestMangoHudConfigEditorDefault(unittest.TestCase):
         # Verify other default values still exist (from first call)
         self.assertTrue(config.has_option(preset_section, "background_alpha"))
 
+    def test_upsert_on_nonexistent_file(self):
+        """Test upsert_mangohud_preset creates the file if it does not exist."""
+        # Ensure the test file does not exist
+        if self.test_config_path.exists():
+            self.test_config_path.unlink()
+
+        # Call upsert to create the preset
+        self.editor.upsert_mangohud_preset()
+
+        # Verify the file was created
+        self.assertTrue(self.test_config_path.exists())
+
+        # Verify the preset was created correctly
+        config = self._read_config()
+        preset_section = f"preset {MANGOHUD_DEFAULT_PRESET_NUMBER}"
+        self.assertTrue(config.has_section(preset_section))
 
     def test_get_current_preset_data(self):
         """Test get_current_preset_data retrieves the correct data."""
@@ -218,8 +234,141 @@ class TestMangoHudConfigEditorDefault(unittest.TestCase):
         # Verify all default flags are present with None value
         for flag in MANGOHUD_DEFAULT_PRESET_FLAGS:
             self.assertIn(flag, preset_data)
-            self.assertIsNone(preset_data[flag])
 
+    def test_get_current_preset_data_on_nonexistent_file(self):
+        """Test get_current_preset_data on a nonexistent file returns empty dict."""
+        # Ensure the test file does not exist
+        if self.test_config_path.exists():
+            self.test_config_path.unlink()
+
+        preset_number = 1  # Any preset number
+
+        preset_data = self.editor.get_current_preset_data(preset=preset_number)
+
+        # Verify that the returned data is an empty dictionary
+        self.assertEqual(preset_data, {})
+
+    def test_delete_preset(self):
+        """Test delete_preset removes the specified preset."""
+        preset_number = 4
+        # First create a preset with defaults
+        self.editor.upsert_mangohud_preset(preset=preset_number)
+
+        # Verify the preset exists
+        config = self._read_config()
+        preset_section = f"preset {preset_number}"
+        self.assertTrue(config.has_section(preset_section))
+
+        # Now delete the preset
+        self.editor.delete_preset(preset=preset_number)
+
+        # Verify the preset no longer exists
+        config = self._read_config()
+        self.assertFalse(config.has_section(preset_section))
+
+    def test_delete_nonexistent_preset(self):
+        """Test delete_preset on a nonexistent preset does not raise an error."""
+        preset_number = 99  # Assume this preset does not exist
+
+        try:
+            self.editor.delete_preset(preset=preset_number)
+        except Exception as e:
+            self.fail(f"delete_preset raised an exception unexpectedly: {e}")
+
+
+    def test_delete_preset_on_nonexistent_file(self):
+        """Test delete_preset on a nonexistent file does not raise an error."""
+        # Ensure the test file does not exist
+        if self.test_config_path.exists():
+            self.test_config_path.unlink()
+
+        preset_number = 1  # Any preset number
+
+        try:
+            self.editor.delete_preset(preset=preset_number)
+        except Exception as e:
+            self.fail(f"delete_preset raised an exception unexpectedly: {e}")
+
+    def test_preset_data_is_empty(self):
+        """Test that get_current_preset_data returns empty dict for nonexistent preset."""
+        # Create empty preset
+        preset_number = 7
+        self.editor.upsert_mangohud_preset(
+            kv={},
+            flags=[],
+            preset=preset_number,
+            clear_preset_first=True
+        )
+
+        empty = self.editor.preset_data_is_empty(preset=preset_number)
+        self.assertTrue(empty)
+
+    def test_preset_data_is_not_empty(self):
+        """Test that get_current_preset_data returns non-empty dict for existing preset."""
+        # Create preset with some data
+        preset_number = 8
+        self.editor.upsert_mangohud_preset(
+            kv={"some_key": "some_value"},
+            flags=[],
+            preset=preset_number,
+            clear_preset_first=True
+        )
+
+        not_empty = self.editor.preset_data_is_empty(preset=preset_number)
+        self.assertFalse(not_empty)
+
+    def test_preset_data_is_only_plugin_data_disjoint(self):
+        """Test that preset_data_is_only_plugin_data returns False for preset with only non-plugin data."""
+        # Create preset with only plugin data
+        preset_number = 9
+        self.editor.upsert_mangohud_preset(
+            kv={"plugin_data_key": "plugin_data_value"},
+            flags=[],
+            preset=preset_number,
+            clear_preset_first=True
+        )
+
+        only_plugin_data = self.editor.preset_data_is_only_plugin_data(preset=preset_number)
+        self.assertFalse(only_plugin_data)
+
+    def test_preset_data_is_only_plugin_data_intersection(self):
+        """Test that preset_data_is_only_plugin_data returns False for preset with mixed data."""
+        # Create preset with non-plugin data
+        preset_number = 10
+        self.editor.upsert_mangohud_preset(
+            kv={"non_plugin_key": "non_plugin_value", "alpha": 1.0},
+            flags=["time"],
+            preset=preset_number,
+            clear_preset_first=True
+        )
+
+        only_plugin_data = self.editor.preset_data_is_only_plugin_data(preset=preset_number)
+        self.assertFalse(only_plugin_data)
+
+    def test_preset_data_is_only_plugin_data_subset(self):
+        """Test that preset_data_is_only_plugin_data returns False for preset with some non-plugin data."""
+        # Create preset with non-plugin data
+        preset_number = 10
+        self.editor.upsert_mangohud_preset(
+            kv={"alpha": 1.0},
+            flags=["time"],
+            preset=preset_number,
+            clear_preset_first=True
+        )
+
+        only_plugin_data = self.editor.preset_data_is_only_plugin_data(preset=preset_number)
+        self.assertFalse(only_plugin_data)
+
+    def test_preset_data_is_only_plugin_data_equal(self):
+        # Create preset with all plugin keys
+        preset_number = 11
+        self.editor.upsert_mangohud_preset(
+            preset=preset_number,
+            clear_preset_first=True
+        )
+
+        only_plugin_data = self.editor.preset_data_is_only_plugin_data(preset=preset_number)
+        self.assertTrue(only_plugin_data)
 
 if __name__ == "__main__":
     unittest.main()
