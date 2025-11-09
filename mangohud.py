@@ -165,4 +165,27 @@ class MangoHudConfigEditor:
 
         self._write_presets_conf()
 
+    def get_current_preset_data(
+        self,
+        preset: int = 3,
+    ) -> dict[str, str | None]:
+        """Get the current key-value pairs and flags of a MangoHud preset.
+
+        Args:
+            preset: Preset number to retrieve.
+        """
+        self._create_presets_conf_dirs_parents()
+        self._create_presets_conf_if_doesnt_exist()
+        self._read_with_config_parser()
+
+        preset_header = f"preset {preset}"
+        if not self.config_parser.has_section(preset_header):
+            return {}
+
+        preset_data: dict[str, str | None] = {}
+        for k in self.config_parser[preset_header].keys():
+            preset_data[k] = self.config_parser.get(preset_header, k)
+
+        return preset_data
+
 mangohud_editor = MangoHudConfigEditor()

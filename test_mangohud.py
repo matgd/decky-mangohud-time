@@ -196,5 +196,25 @@ class TestMangoHudConfigEditorDefault(unittest.TestCase):
         self.assertTrue(config.has_option(preset_section, "background_alpha"))
 
 
+    def test_get_current_preset_data(self):
+        """Test get_current_preset_data retrieves the correct data."""
+        preset_number = 3
+        # First create a preset with defaults
+        self.editor.upsert_mangohud_preset(preset=preset_number)
+
+        # Retrieve the preset data
+        preset_data = self.editor.get_current_preset_data(preset=preset_number)
+
+        # Verify all default key-value pairs are present
+        for key, expected_value in MANGOHUD_DEFAILT_PRESET_KEY_VALUES.items():
+            self.assertIn(key, preset_data)
+            self.assertEqual(preset_data[key], str(expected_value))
+
+        # Verify all default flags are present with None value
+        for flag in MANGOHUD_DEFAULT_PRESET_FLAGS:
+            self.assertIn(flag, preset_data)
+            self.assertIsNone(preset_data[flag])
+
+
 if __name__ == "__main__":
     unittest.main()
