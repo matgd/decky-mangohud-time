@@ -130,9 +130,9 @@ class MangoHudConfigEditor:
         Args:
             path: Path to the MangoHud config file.
             preset: Preset number to add or update.
-            kv: Key-value pairs to set in the preset.
-            flags: List of flags (keys without values) to set in the preset.
-            remove: List of keys/flags to remove from the preset.
+            kv: Key-value pairs to set in the preset. If None, uses default key-values.
+            flags: List of flags (keys without values) to set in the preset. If None, uses default flags.
+            remove: List of keys/flags to remove from the preset. If None, no keys/flags are removed.
             clear_preset_first: If True, clears all existing keys/flags in the preset before applying changes.
         """
         if kv is None:
@@ -254,24 +254,22 @@ class Plugin:
         preset_number: int,
         alpha: float,
         background_alpha: float,
-        time_format: str,
         offset_y: int,
         offset_x: int,
+        time_format: str,
         position: str,
     ) -> None:
-        kv = MANGOHUD_DEFAILT_PRESET_KEY_VALUES
-        kv.update({
+        new_key_values = {
             "alpha": alpha,
             "background_alpha": background_alpha,
             "time_format": time_format,
             "offset_y": offset_y,
             "offset_x": offset_x,
             "position": position,
-        })
+        }
         mangohud_editor.upsert_mangohud_preset(
             preset=preset_number,
-            kv=kv,
-            flags=MANGOHUD_DEFAULT_PRESET_FLAGS,
+            kv=new_key_values,
         )
 
     async def mangohud_delete_preset(self, preset_number: int) -> None:

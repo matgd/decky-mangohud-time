@@ -6,7 +6,8 @@ import {
   staticClasses,
   SliderField,
   Dropdown,
-  TextField
+  TextField,
+  DropdownItem,
 } from "@decky/ui";
 import {
   addEventListener,
@@ -54,6 +55,17 @@ function Content() {
   const [timeFormat, setTimeFormat] = useState<string>("%H:%M");
   const [position, setPosition] = useState<string>("top-right");
 
+  const timeFormatOptions = [
+    { label: "23:45", data: "%H:%M" },
+    { label: "11:45 PM", data: "%I:%M %p" },
+    { label: "23", data: "%H" },
+    { label: "23:", data: "%H:" },
+    { label: ":45", data: ":%M" },
+    { label: "23:45:30", data: "%H:%M:%S" },
+    { label: "11:45:30 PM", data: "%I:%M:%S %p" },
+    { label: "2025-12-31 23:45", data: "%Y-%m-%d %H:%M" },
+    { label: "2025-12-31 11:45 PM", data: "%Y-%m-%d %I:%M %p" },
+  ];
 
   const presetLoad = async () => {
     try {
@@ -93,6 +105,27 @@ function Content() {
     });
   }, [preset])
 
+  const applyChanges = async () => {
+    try {
+      if (!showPresetKeys) return;
+      await mangohudUpsertTimePreset(
+        preset,
+        alpha,
+        backgroundAlpha,
+        offsetY,
+        offsetX,
+        timeFormat,
+        position
+      );
+    } catch (e) {
+      setErrorMsg(`Failed to apply changes: ${e}`);
+    }
+  }
+
+  // useEffect(() => {
+  //   onFieldChange();
+  // }, [alpha, backgroundAlpha, offsetX, offsetY, timeFormat, position]);
+
   if (errorMsg !== "") {
     return (
       <PanelSection title="MangoHud config">
@@ -116,6 +149,9 @@ function Content() {
       {showPresetKeys && (
         <>
           <PanelSectionRow>
+            <ButtonItem layout="below" onClick={() => applyChanges()}>Apply changes</ButtonItem>
+          </PanelSectionRow>
+          <PanelSectionRow>
             <SliderField label="Text alpha" min={0} max={1} step={0.1} value={alpha} onChange={(v) => setAlpha(v)} showValue={true} description="Change text opacity" />
           </PanelSectionRow>
           <PanelSectionRow>
@@ -131,7 +167,8 @@ function Content() {
             <Dropdown menuLabel="Clock position (not available yet)" rgOptions={[{ data: mangohudDefaultKV?.position, label: mangohudDefaultKV?.position }]} selectedOption={position} />
           </PanelSectionRow>*/}
           <PanelSectionRow>
-            <TextField label="Time format" value={timeFormat} onChange={(v) => {setTimeFormat(v.target.innerText)}} description="Set the time format (strftime)" />
+            {/*TODO: BROKEN*/}
+            <DropdownItem label="Time format (BROKEN)" rgOptions={timeFormatOptions} selectedOption={timeFormat} onChange={(v) => setTimeFormat(v.data)} description="Select time format" />
           </PanelSectionRow>
         </>
       )}
