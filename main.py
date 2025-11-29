@@ -14,34 +14,26 @@ from configparser import ConfigParser
 import shutil
 
 MANGOHUD_CONFIG_PATH = Path.home() / ".config" / "MangoHud" / "presets.conf"
-MANGOHUD_CONFIG_PRESET_TEMPLATE = """
-[preset {f_preset_number}]
-alpha={f_alpha}
-background_alpha={f_background_alpha}
-time
-time_no_label
-time_format={f_time_format}
-legacy_layout=false
-horizontal
-offset_y={f_offset_y}
-offset_x={f_offset_x}
-position={f_position}
-"""
 
 MANGOHUD_DEFAULT_PRESET_NUMBER = 3
-MANGOHUD_DEFAILT_PRESET_KEY_VALUES = {
+
+# TODO: Don't keep defaults in multiple places
+MANGOHUD_DEFAULT_PRESET_KEY_VALUES = {
     "alpha": 1.0,
     "background_alpha": 0.0,
     "time_format": "%H:%M",
-    "offset_y": -5,
-    "offset_x": 1212,
+    "offset_y": -6,
+    "offset_x": 233,
     "position": "top-right",
+    "cpu_stats": 0,
+    "gpu_stats": 0,
+    "frame_timing": 0,
+    "fps": 0,
+    "width": 300
 }
 MANGOHUD_DEFAULT_PRESET_FLAGS = [
     "time",
     "time_no_label",
-    "legacy_layout",
-    "horizontal",
 ]
 
 class MangoHudConfigEditor:
@@ -136,7 +128,7 @@ class MangoHudConfigEditor:
             clear_preset_first: If True, clears all existing keys/flags in the preset before applying changes.
         """
         if kv is None:
-            kv = MANGOHUD_DEFAILT_PRESET_KEY_VALUES
+            kv = MANGOHUD_DEFAULT_PRESET_KEY_VALUES
         if flags is None:
             flags = MANGOHUD_DEFAULT_PRESET_FLAGS
         if remove is None:
@@ -163,11 +155,7 @@ class MangoHudConfigEditor:
         self,
         preset: int = 3,
     ):
-        """Delete a MangoHud preset from the config file.
-
-        Args:
-            preset: Preset number to delete.
-        """
+        """Delete a MangoHud preset from the config file."""
         self._create_presets_conf_dirs_parents()
         self._backup_existing_mangohud_config()
         self._create_presets_conf_if_doesnt_exist()
@@ -183,11 +171,7 @@ class MangoHudConfigEditor:
         self,
         preset: int = 3,
     ) -> dict[str, str | None]:
-        """Get the current key-value pairs and flags of a MangoHud preset.
-
-        Args:
-            preset: Preset number to retrieve.
-        """
+        """Get the current key-value pairs and flags of a MangoHud preset."""
         self._create_presets_conf_dirs_parents()
         self._create_presets_conf_if_doesnt_exist()
         self._read_with_config_parser()
@@ -206,11 +190,7 @@ class MangoHudConfigEditor:
         self,
         preset: int = 3,
     ) -> bool:
-        """Check if a MangoHud preset is empty (has no keys or flags).
-
-        Args:
-            preset: Preset number to check.
-        """
+        """Check if a MangoHud preset is empty (has no keys or flags)."""
         self._create_presets_conf_dirs_parents()
         self._create_presets_conf_if_doesnt_exist()
         self._read_with_config_parser()
@@ -226,11 +206,7 @@ class MangoHudConfigEditor:
         self,
         preset: int = 3,
     ) -> bool:
-        """Check if a MangoHud preset contains only the plugin's default keys and flags.
-
-        Args:
-            preset: Preset number to check.
-        """
+        """Check if a MangoHud preset contains only the plugin's default keys and flags."""
         self._create_presets_conf_dirs_parents()
         self._create_presets_conf_if_doesnt_exist()
         self._read_with_config_parser()
@@ -241,7 +217,7 @@ class MangoHudConfigEditor:
 
         inspected_keys_set = set(self.config_parser[preset_header].keys())
 
-        plugin_keys_set = set(MANGOHUD_DEFAILT_PRESET_KEY_VALUES.keys())
+        plugin_keys_set = set(MANGOHUD_DEFAULT_PRESET_KEY_VALUES.keys())
         plugin_flags_set = set(MANGOHUD_DEFAULT_PRESET_FLAGS)
 
         return inspected_keys_set == plugin_keys_set.union(plugin_flags_set)
@@ -259,6 +235,7 @@ class Plugin:
         time_format: str,
         position: str,
     ) -> None:
+        """Upsert function to call in frontend. Supplies the flags by default."""
         new_key_values = {
             "alpha": alpha,
             "background_alpha": background_alpha,
@@ -267,9 +244,13 @@ class Plugin:
             "offset_x": offset_x,
             "position": position,
         }
+        kvs = {
+            **MANGOHUD_DEFAULT_PRESET_KEY_VALUES,
+            **new_key_values,
+        }
         mangohud_editor.upsert_mangohud_preset(
             preset=preset_number,
-            kv=new_key_values,
+            kv=kvs,
         )
 
     async def mangohud_delete_preset(self, preset_number: int) -> None:

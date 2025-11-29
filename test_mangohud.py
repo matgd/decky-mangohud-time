@@ -11,7 +11,7 @@ sys.modules['decky'] = mock.MagicMock()
 from main import (
     MangoHudConfigEditor,
     MANGOHUD_DEFAULT_PRESET_NUMBER,
-    MANGOHUD_DEFAILT_PRESET_KEY_VALUES,
+    MANGOHUD_DEFAULT_PRESET_KEY_VALUES,
     MANGOHUD_DEFAULT_PRESET_FLAGS,
 )
 
@@ -52,7 +52,7 @@ class TestMangoHudConfigEditorDefault(unittest.TestCase):
         self.assertTrue(config.has_section(preset_section))
 
         # Verify all default key-value pairs
-        for key, expected_value in MANGOHUD_DEFAILT_PRESET_KEY_VALUES.items():
+        for key, expected_value in MANGOHUD_DEFAULT_PRESET_KEY_VALUES.items():
             self.assertTrue(config.has_option(preset_section, key))
             actual_value = config.get(preset_section, key)
             self.assertEqual(actual_value, str(expected_value))
@@ -74,7 +74,7 @@ class TestMangoHudConfigEditorDefault(unittest.TestCase):
         self.assertTrue(config.has_section(preset_section))
 
         # Verify default values are still used
-        for key, expected_value in MANGOHUD_DEFAILT_PRESET_KEY_VALUES.items():
+        for key, expected_value in MANGOHUD_DEFAULT_PRESET_KEY_VALUES.items():
             self.assertEqual(config.get(preset_section, key), str(expected_value))
 
         for flag in MANGOHUD_DEFAULT_PRESET_FLAGS:
@@ -109,7 +109,7 @@ class TestMangoHudConfigEditorDefault(unittest.TestCase):
         self.assertIsNone(config.get(preset_section, "custom_flag"))
 
         # Verify default key-values are still used
-        for key, expected_value in MANGOHUD_DEFAILT_PRESET_KEY_VALUES.items():
+        for key, expected_value in MANGOHUD_DEFAULT_PRESET_KEY_VALUES.items():
             self.assertEqual(config.get(preset_section, key), str(expected_value))
 
     def test_upsert_mangohud_preset_remove_key(self):
@@ -227,7 +227,7 @@ class TestMangoHudConfigEditorDefault(unittest.TestCase):
         preset_data = self.editor.get_current_preset_data(preset=preset_number)
 
         # Verify all default key-value pairs are present
-        for key, expected_value in MANGOHUD_DEFAILT_PRESET_KEY_VALUES.items():
+        for key, expected_value in MANGOHUD_DEFAULT_PRESET_KEY_VALUES.items():
             self.assertIn(key, preset_data)
             self.assertEqual(preset_data[key], str(expected_value))
 

@@ -20,10 +20,16 @@ import {
 import { useEffect, useState } from "react";
 import { FaClock } from "react-icons/fa";
 
-const OFFSET_X_SLIDER_FIELD_RANGE = 15;
-const OFFSET_Y_SLIDER_FIELD_RANGE = 15;
-const OFFSET_X_BASE = 1212;
-const OFFSET_Y_BASE = -5;
+// TODO: Don't keep defaults in multiple places
+const DEFAULT_ALPHA = 1.0;
+const DEFAULT_BACKGROUND_ALPHA = 0.0;
+const OFFSET_X_BASE = 233;
+const OFFSET_Y_BASE = -6;
+const DEFAULT_TIME_FORMAT = "%H:%M";
+const DEFAULT_POSITION = "top-right";
+
+const OFFSET_X_SLIDER_FIELD_RANGE = 100;
+const OFFSET_Y_SLIDER_FIELD_RANGE = OFFSET_X_SLIDER_FIELD_RANGE;
 
 const mangohudUpsertTimePreset = callable<[
   preset_number: number,
@@ -47,6 +53,7 @@ function Content() {
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [presetMsg, setPresetMsg] = useState<string>("");
 
+
   const [preset, setPreset] = useState<number>(3);
   const [alpha, setAlpha] = useState<number>(1.0);
   const [backgroundAlpha, setBackgroundAlpha] = useState<number>(0.0);
@@ -65,6 +72,13 @@ function Content() {
     { label: "11:45:30 PM", data: "%I:%M:%S %p" },
     { label: "2025-12-31 23:45", data: "%Y-%m-%d %H:%M" },
     { label: "2025-12-31 11:45 PM", data: "%Y-%m-%d %I:%M %p" },
+  ];
+
+  const positionOptions = [
+    { label: "top-left", data: "top-left" },
+    { label: "top-right", data: "top-right" },
+    { label: "bottom-left", data: "bottom-left" },
+    { label: "bottom-right", data: "bottom-right" },
   ];
 
   const presetLoad = async () => {
@@ -92,6 +106,7 @@ function Content() {
       if (curr.offset_x) setOffsetX(parseInt(curr.offset_x));
       if (curr.offset_y) setOffsetY(parseInt(curr.offset_y));
       if (curr.time_format) setTimeFormat(curr.time_format);
+      if (curr.position) setPosition(curr.position);
       setShowPresetKeys(true);
     } catch (e) {
       setErrorMsg(`Failed to load current preset data: ${e}`);
@@ -107,7 +122,6 @@ function Content() {
 
   const applyChanges = async () => {
     try {
-      if (!showPresetKeys) return;
       await mangohudUpsertTimePreset(
         preset,
         alpha,
@@ -122,6 +136,22 @@ function Content() {
     }
   }
 
+  const defaultSettings = async () => {
+    setAlpha(DEFAULT_ALPHA);
+    setBackgroundAlpha(DEFAULT_BACKGROUND_ALPHA);
+    setOffsetX(OFFSET_X_BASE);
+    setOffsetY(OFFSET_Y_BASE);
+    setTimeFormat(DEFAULT_TIME_FORMAT);
+    setPosition(DEFAULT_POSITION);
+    await applyChanges();
+  }
+
+  const createPreset = async () => {
+    await defaultSettings();
+    await presetLoad();
+  }
+
+
   // useEffect(() => {
   //   onFieldChange();
   // }, [alpha, backgroundAlpha, offsetX, offsetY, timeFormat, position]);
@@ -134,6 +164,9 @@ function Content() {
     )
   }
 
+  // TODO:
+  //  - Fix 0s in offset fields when loading preset
+  //  - Apply automatically on field change
   return (
     <PanelSection title="MangoHud config">
       <PanelSectionRow>
@@ -141,9 +174,14 @@ function Content() {
       </PanelSectionRow>
 
       {(presetEmpty || presetNonPluginKeysInside) && (
-        <PanelSectionRow>
-          <div>{presetMsg}</div>
-        </PanelSectionRow>
+        <>
+          <PanelSectionRow>
+            <div>{presetMsg}</div>
+          </PanelSectionRow>
+          <PanelSectionRow>
+            <ButtonItem layout="below" onClick={() => createPreset()}>Create preset</ButtonItem>
+          </PanelSectionRow>
+        </>
       )}
 
       {showPresetKeys && (
@@ -163,12 +201,14 @@ function Content() {
           <PanelSectionRow>
             <SliderField label="Offset Y" min={OFFSET_Y_BASE - OFFSET_Y_SLIDER_FIELD_RANGE} max={OFFSET_Y_BASE + OFFSET_Y_SLIDER_FIELD_RANGE} showValue={true} step={1} value={offsetY} onChange={(v) => setOffsetY(v)} description="Adjust the placement on Y axis" />
           </PanelSectionRow>
-          {/*<PanelSectionRow>
-            <Dropdown menuLabel="Clock position (not available yet)" rgOptions={[{ data: mangohudDefaultKV?.position, label: mangohudDefaultKV?.position }]} selectedOption={position} />
-          </PanelSectionRow>*/}
           <PanelSectionRow>
-            {/*TODO: BROKEN*/}
-            <DropdownItem label="Time format (BROKEN)" rgOptions={timeFormatOptions} selectedOption={timeFormat} onChange={(v) => setTimeFormat(v.data)} description="Select time format" />
+            <DropdownItem label="Time format" rgOptions={timeFormatOptions} selectedOption={timeFormat} onChange={(v) => setTimeFormat(v.data)} description="Select time format" />
+          </PanelSectionRow>
+          <PanelSectionRow>
+            <DropdownItem label="Clock position" rgOptions={positionOptions} selectedOption={position} onChange={(v) => setPosition(v.data)} description="Select clock position" />
+          </PanelSectionRow>
+          <PanelSectionRow>
+            <ButtonItem layout="below" onClick={() => defaultSettings()}>Reset to defaults</ButtonItem>
           </PanelSectionRow>
         </>
       )}
@@ -205,6 +245,8 @@ export default definePlugin(() => {
     content: <Content />,
     // The icon displayed in the plugin list
     icon: <FaClock />,
+    // Fixes DropdownItem not updating
+    alwaysRender: true,
     // The function triggered when your plugin unloads
     onDismount() {
       console.log("Unloading")
