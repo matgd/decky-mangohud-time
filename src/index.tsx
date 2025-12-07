@@ -82,7 +82,7 @@ function Content() {
 
   const presetLoad = async () => {
     try {
-      const curr = await pyMangohudGetCurrentPresetData(3);
+      const curr = await pyMangohudGetCurrentPresetData(preset);
       const isEmpty = await pyMangohudPresetIsEmpty(preset);
       const nonPluginDataDetected = await pyMangohudPresetNonPluginKeysInside(preset);
 
@@ -122,13 +122,6 @@ function Content() {
     }
   }
 
-  useEffect(() => {
-    setShowPresetKeys(false);
-    presetLoad().catch(e => {
-      setErrorMsg(`Error during preset load: ${e}`);
-    });
-  }, [preset])
-
   const applyChanges = async () => {
     try {
       await pyMangohudUpsertTimePreset(
@@ -160,9 +153,16 @@ function Content() {
     await presetLoad();
   }
 
-  // useEffect(() => {
-  //   onFieldChange();
-  // }, [alpha, backgroundAlpha, offsetX, offsetY, timeFormat, position]);
+  // useEffect applyChanges doesnt work
+  // [alpha, backgroundAlpha, offsetX, offsetY, timeFormat, position];
+
+  useEffect(() => {
+    setShowPresetKeys(false);
+    presetLoad().catch(e => {
+      setErrorMsg(`Error during preset load: ${e}`);
+    });
+  }, [preset])
+
 
   if (errorMsg !== "") {
     return (
