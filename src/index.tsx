@@ -31,7 +31,7 @@ const DEFAULT_POSITION = "top-right";
 const OFFSET_X_SLIDER_FIELD_RANGE = 100;
 const OFFSET_Y_SLIDER_FIELD_RANGE = OFFSET_X_SLIDER_FIELD_RANGE;
 
-const mangohudUpsertTimePreset = callable<[
+const pyMangohudUpsertTimePreset = callable<[
   preset_number: number,
   alpha: number,
   background_alpha: number,
@@ -40,10 +40,10 @@ const mangohudUpsertTimePreset = callable<[
   time_format: string,
   position: string,
 ], void>("mangohud_upsert_time_preset");
-const mangohudGetCurrentPresetData = callable<[preset_number: number], any>("mangohud_get_current_preset_data");
-const mangohudPresetIsEmpty = callable<[preset_number: number], boolean>("mangohud_preset_is_empty");
-const mangohudPresetNonPluginKeysInside = callable<[preset_number: number], boolean>("mangohud_preset_non_plugin_keys_inside");
-
+const pyMangohudGetCurrentPresetData = callable<[preset_number: number], any>("mangohud_get_current_preset_data");
+const pyMangohudPresetIsEmpty = callable<[preset_number: number], boolean>("mangohud_preset_is_empty");
+const pyMangohudPresetNonPluginKeysInside = callable<[preset_number: number], boolean>("mangohud_preset_non_plugin_keys_inside");
+const pyDeletePreset = callable<[preset_number: number], void>("mangohud_delete_preset");
 
 function Content() {
   const [showPresetKeys, setShowPresetKeys] = useState<boolean>(false);
@@ -83,9 +83,9 @@ function Content() {
 
   const presetLoad = async () => {
     try {
-      const curr = await mangohudGetCurrentPresetData(3);
-      const isEmpty = await mangohudPresetIsEmpty(preset);
-      const nonPluginDataDetected = await mangohudPresetNonPluginKeysInside(preset);
+      const curr = await pyMangohudGetCurrentPresetData(3);
+      const isEmpty = await pyMangohudPresetIsEmpty(preset);
+      const nonPluginDataDetected = await pyMangohudPresetNonPluginKeysInside(preset);
 
       setPresetEmpty(isEmpty);
       setPresetNonPluginKeysInside(nonPluginDataDetected);
@@ -113,6 +113,16 @@ function Content() {
     }
   }
 
+  const deleteCurrentPreset = async () => {
+    try {
+      await pyDeletePreset(preset);
+      setPresetEmpty(true);
+      setShowPresetKeys(false);
+    } catch (e) {
+      setErrorMsg(`Failed to delete preset: ${e}`);
+    }
+  }
+
   useEffect(() => {
     setShowPresetKeys(false);
     presetLoad().catch(e => {
@@ -122,7 +132,7 @@ function Content() {
 
   const applyChanges = async () => {
     try {
-      await mangohudUpsertTimePreset(
+      await pyMangohudUpsertTimePreset(
         preset,
         alpha,
         backgroundAlpha,
@@ -209,6 +219,9 @@ function Content() {
           </PanelSectionRow>
           <PanelSectionRow>
             <ButtonItem layout="below" onClick={() => defaultSettings()}>Reset to defaults</ButtonItem>
+          </PanelSectionRow>
+          <PanelSectionRow>
+            <ButtonItem layout="below" onClick={() => deleteCurrentPreset()}>Delete preset</ButtonItem>
           </PanelSectionRow>
         </>
       )}
