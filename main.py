@@ -17,7 +17,6 @@ MANGOHUD_CONFIG_PATH = Path.home() / ".config" / "MangoHud" / "presets.conf"
 
 MANGOHUD_DEFAULT_PRESET_NUMBER = 3
 
-# TODO: Don't keep defaults in multiple places
 MANGOHUD_DEFAULT_PRESET_KEY_VALUES = {
     "alpha": 1.0,
     "background_alpha": 0.0,
@@ -264,6 +263,9 @@ class Plugin:
 
     async def mangohud_preset_non_plugin_keys_inside(self, preset_number: int) -> bool:
         return not mangohud_editor.preset_data_is_only_plugin_data(preset=preset_number)
+    
+    async def mangohud_get_default_preset_key_values(self) -> dict[str, str | int | float]:
+        return MANGOHUD_DEFAULT_PRESET_KEY_VALUES
 
     # ==========================================================================
     # Asyncio-compatible long-running code, executed in a task when the plugin is loaded

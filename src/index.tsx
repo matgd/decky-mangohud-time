@@ -20,13 +20,13 @@ import {
 import { useEffect, useState } from "react";
 import { FaClock } from "react-icons/fa";
 
-// TODO: Don't keep defaults in multiple places
-const DEFAULT_ALPHA = 1.0;
-const DEFAULT_BACKGROUND_ALPHA = 0.0;
-const OFFSET_X_BASE = 233;
-const OFFSET_Y_BASE = -6;
-const DEFAULT_TIME_FORMAT = "%H:%M";
-const DEFAULT_POSITION = "top-right";
+const PY_PRESET_DEFAULTS = await (callable<[], any>("mangohud_get_default_preset_key_values"))();
+const DEFAULT_ALPHA = PY_PRESET_DEFAULTS.alpha;
+const DEFAULT_BACKGROUND_ALPHA = PY_PRESET_DEFAULTS.background_alpha;
+const OFFSET_X_BASE = PY_PRESET_DEFAULTS.offset_x;
+const OFFSET_Y_BASE = PY_PRESET_DEFAULTS.offset_y;
+const DEFAULT_TIME_FORMAT = PY_PRESET_DEFAULTS.time_format;
+const DEFAULT_POSITION = PY_PRESET_DEFAULTS.position;
 
 const OFFSET_X_SLIDER_FIELD_RANGE = 100;
 const OFFSET_Y_SLIDER_FIELD_RANGE = OFFSET_X_SLIDER_FIELD_RANGE;
@@ -52,7 +52,6 @@ function Content() {
 
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [presetMsg, setPresetMsg] = useState<string>("");
-
 
   const [preset, setPreset] = useState<number>(3);
   const [alpha, setAlpha] = useState<number>(1.0);
@@ -160,7 +159,6 @@ function Content() {
     await defaultSettings();
     await presetLoad();
   }
-
 
   // useEffect(() => {
   //   onFieldChange();
