@@ -67,8 +67,8 @@ function Content() {
     { label: "23", data: "%H" },
     { label: "23:", data: "%H:" },
     { label: ":45", data: ":%M" },
-    { label: "23:45:30", data: "%H:%M:%S" },
-    { label: "11:45:30 PM", data: "%I:%M:%S %p" },
+    { label: "23:45:59", data: "%H:%M:%S" },
+    { label: "11:45:59 PM", data: "%I:%M:%S %p" },
     { label: "2025-12-31 23:45", data: "%Y-%m-%d %H:%M" },
     { label: "2025-12-31 11:45 PM", data: "%Y-%m-%d %I:%M %p" },
   ];
@@ -200,6 +200,7 @@ function Content() {
           <PanelSectionRow>
             <ButtonItem layout="below" onClick={() => applyChanges()}>Apply changes</ButtonItem>
           </PanelSectionRow>
+
           <PanelSectionRow>
             <SliderField label="Text alpha" min={0} max={1} step={0.1} value={alpha} onChange={(v) => setAlpha(v)} showValue={true} description="Change text opacity" />
           </PanelSectionRow>
@@ -218,6 +219,7 @@ function Content() {
           <PanelSectionRow>
             <DropdownItem label="Clock position" rgOptions={positionOptions} selectedOption={position} onChange={(v) => setPosition(v.data)} description="Select clock position" />
           </PanelSectionRow>
+
           <PanelSectionRow>
             <ButtonItem layout="below" onClick={() => defaultSettings()}>Reset to defaults</ButtonItem>
           </PanelSectionRow>
