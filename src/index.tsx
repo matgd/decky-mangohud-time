@@ -177,6 +177,9 @@ function Content() {
   // TODO:
   //  - Fix 0s in offset fields when loading preset
   //  - Apply automatically on field change
+
+  // TODO:
+  // - state machine for preset states (empty, non-plugin keys inside, ready)
   return (
     <PanelSection title="MangoHud config">
       <PanelSectionRow>
